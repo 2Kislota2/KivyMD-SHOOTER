@@ -8,7 +8,7 @@ from kivy.core.window import Window
 from kivy import platform
 from kivy.uix.image import Image
 from random import randint
-from kivymd.uix.button import MDFlatButton
+from kivymd.uix.button import MDButton
 from kivymd.uix.dialog import MDDialog
 from kivy.core.window import Keyboard
 FPS = 60
@@ -28,23 +28,87 @@ class GameScreen(MDScreen):
         super().__init__(*args, **kwargs) 
         Clock.schedule_interval(self.update, 1/FPS)
         
-        self.evetkey = {}
-        self.catridge = []
+        self.evetkeys = {}
+        self.bullets = []
+        self.ship = self.ids.ship
+        self.enemyShips = []
+        self.pauseMenu = None
         
+    def _on_key_down(self, window, keycode, *args, **kwargs):
+        key = key if (key := Keyboard.keycode_to_string(window, keycode)) != "spacebar" else "shot"
+        
+        self.evetkeys[key] = True
+        
+    def _on_key_up(self, window, keycode, *args, **kwargs):
+        key = key if (key := Keyboard.keycode_to_string(window, keycode)) != "spacebar" else "shot"
+        
+        self.evetkeys[key] = False
+        
+    # def update(self, dt):
+    #     for key,in self.evetkeys:
+    #         if self.evetkeys[key] == True:
+    #             if key == 'left':
+    #                 self.moveLeft()
+    #             if key == "rigth":
+    #                 self.moveRight()
+    #             if key == "shot":
+    #                 self.shot()
+    #                 self.eventkeys[key] = False
     def update(self, dt):
-        for key,in self.evetkeys:
-            if self.evetkeys[key] == True:
-                if key == 'left':
-                    self.moveLeft()
-                if key == "rigth":
-                    self.moveRight()
-                if key == "shot":
-                    self.shot()
-                    self.eventkeys[key] = False
-                    
-        for bullet in self.cartridge:
-            bullet.poss[1] += BULLET_SPEED
+        self.ship.update(self.evetkeys)
+        
+        for ship in self.enemyShips:
+            self.update()
             
+        self.manage_bullets()
+                    
+        for bullet in self.bullets:
+            bullet.poss[1] += BULLET_SPEED
+        
+    def manage_bullets(self):
+        for bullet in self.bullets[:]:
+            bullet.y += BULLET_SPEED * bullet.direction
+            
+            if bullet.y > Window.height or bullet.top < 0:
+                self.ids.front.remove_widget(bullet)
+                self.bullets.remove(bullet)
+                
+    def on_enter(self, *args):
+        self.updateEvent = Clock.schedule_interval(self.update, 1 / FPS)
+        
+        ship = EnemyShip(DIR_DOWN)
+        ship.pos = (randint(0, int(Window.size[0] -  ship.size[0])), Window.size[1])
+        self.enemyShips.append(ship)
+        self.ids.front.add_widget(self.enemyShips[-1])
+        
+        return super().on_enter(*args)
+    
+    def pauseStop(self, *args):
+        self.pauseMenu.dismiss()
+        
+    def resumeGame(self, *args):
+        self.updateEvent = Clock.schedule_interval(self.update, 1/FPS)
+            
+    
+    def show_menu(self):
+        self.updateEvent.cancel()
+
+        if not self.pauseMenu:
+            self.pauseMenu = MDDialog(
+                title="Game Paused",
+                text="Resume the game?",
+                on_dismiss=self.resumeGame,
+                buttons=[
+                    MDButton(
+                        text="RESUME",
+                        theme_text_color="Custom",
+                        text_color=app.theme_cls.primary_color,
+                        on_press=self.pauseStop
+                    )
+                ],
+            )
+        self.pauseMenu.open()
+        
     def pressKey(self, key):
         self.eventkeys[key] = True
     def releaseKey(self, key):
@@ -55,7 +119,7 @@ class GameScreen(MDScreen):
             self.ids.ship.pos[0] += SHIP_SPEED
     def shot(self):
         shot = Shot(pos=(self.ids.ship.center_x, self.ids.ship.top))
-        self.catridge.append(shot)
+        self.bullets.append(shot)
         self.ids.front.add_widget(shot)
         
         
@@ -108,7 +172,10 @@ class EnemyShip(Ship):
         self.frame += 1
                 
 class Shot(MDWidget):
-    ...
+    def __init__(self, direction = DIR_UP, **kwargs):
+        super().__init__(**kwargs)
+        self.direction = direction
+    
 
 class SettingsScren(MDScreen):
     ...
