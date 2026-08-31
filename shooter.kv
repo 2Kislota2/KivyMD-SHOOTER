@@ -3,92 +3,98 @@
         orientation: 'vertical'
         padding: '50dp'
         spacing: '30dp'
+
         MDIconButton:
             icon: "cog"
             pos_hint: {"right": 1, "top": 1}
             icon_size: '50dp'
+            on_press: root.manager.current = 'settings'
 
-            on_press:
-                root.manager.current = 'settings'
         MDLabel:
-            text: "SHUTER"
+            text: "SHOOTER"
             halign: 'center'
             font_size: '60sp'
-        # Image:
-        #     source: 'assets/images/rocket.png'
-        #     size_hint_y: 0.7
-        #     allow_stretch: True
 
         MDIconButton:
             icon: "play"
             font_size: '60sp'
-            pos_hint: {'center_x': 0.5,'center_y': 0.5}
-            # theme_text_color: "Custom"
-            # text_color: "white"
-            # line_color: "red"
-            on_press:
-                root.manager.current = 'game'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            on_press: root.manager.current = 'game'
+
 
 <GameScreen>:
     FloatLayout:
         FloatLayout:
             id: game
+
             FloatLayout:
                 id: back
+
             FloatLayout:
                 id: front
+
                 PlayerShip:
                     id: ship
                     center: root.center
 
-        #Тут было MDFloatingActionButton
         MDFloatLayout:
             id: interface
+
             BoxLayout:
                 spacing: dp(20)
                 padding: dp(20)
+
                 MDIconButton:
                     icon: "arrow-left-bold"
                     on_press: root.pressKey('left')
                     on_release: root.releaseKey('left')
+
                 MDIconButton:
                     icon: "arrow-right-bold"
-                    md_bg_color: app.theme_cls.primaryColor
+                    md_bg_color: app.theme_cls.primary_color
                     on_press: root.pressKey('right')
                     on_release: root.releaseKey('right')
+
                 Widget:
+
                 MDIconButton:
                     icon: "arrow-up-bold"
-                    md_bg_color: app.theme_cls.primaryColor
+                    md_bg_color: app.theme_cls.primary_color
                     on_press: root.pressKey('shot')
                     on_release: root.releaseKey('shot')
+
+
 <GameOverScreen>:
     MDBoxLayout:
         orientation: 'vertical'
         padding: '50dp'
         spacing: '30dp'
+
         MDLabel:
             text: "GAME OVER"
             font_size: '100sp'
-            color: app.theme_cls.accent_color
+            color: app.theme_cls.error_color
             halign: 'center'
+
         MDIcon:
             icon: "skull"
             font_size: '220sp'
             size_hint: None, None
             pos_hint: {'center_x': 0.5}
-            color: app.theme_cls.accent_color
+            color: app.theme_cls.error_color
+
         Widget:
             size_hint_y: 0.5
+
         MDButton:
-            text: "MENU"
-            font_size: '60sp'
             pos_hint: {'center_x': 0.5}
-            on_press:
-                root.manager.current = 'main'
+            on_press: root.manager.current = 'main'
+
+            MDButtonText:
+                text: "MENU"
 
 
-<SettingsScren>:
+<SettingsScreen>:
     MDBoxLayout:
         orientation: 'horizontal'
         padding: '40dp'
@@ -102,7 +108,5 @@
         MDIconButton:
             icon: "home"
             font_size: '70sp'
-            pos_hint: {'center_x': 0.5,'center_y': 0.5}
-
-            on_press:
-                root.manager.current = 'main'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+            on_press: root.manager.current = 'main'
