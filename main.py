@@ -57,31 +57,75 @@ class GameScreen(MDScreen):
     def update(self, dt):
         self.ship.update(self.evetkeys)
         
+        
+        self.time_last_spawn += dt
+        
+        if self.time_last_spawn >= self.spawn_delay:
+            self.spawn_enemy()
+            self.time_last_spawn = 0
+        
         for ship in self.enemyShips:
             self.update()
-            
+            if  ship.top < 0 :
+                self.enemyShips.remove(ship)
+                self.ids.front.remove_widget(ship)
+                
+                if ship.collide_widget(self.ship):
+                    self.game_over()
         self.manage_bullets()
+        
+    def game_over(self):
+        self.updateEvent.cancel()
+        
+        for enemy in self.enemyShips[:]:
+            self.enemyShips.remove(enemy)
+            self.ids.front.remove_widget(enemy)
+            
+        for bullet in self.bullets[:]:
+            self.enemyShips.remove(bullet)
+            self.ids.front.remove_widget(bullet)
+        
+        
+        self.manager.current = "game_over"
                     
-        for bullet in self.bullets:
-            bullet.poss[1] += BULLET_SPEED
+     
         
     def manage_bullets(self):
         for bullet in self.bullets[:]:
             bullet.y += BULLET_SPEED * bullet.direction
             
+            self.check_collisions(bullet)
+            
             if bullet.y > Window.height or bullet.top < 0:
                 self.ids.front.remove_widget(bullet)
                 self.bullets.remove(bullet)
+    def check_collision(self, bullet):
+        if bullet.owner == self.ship:
+            for enemy in self.enemyShips[:]:
+                if bullet.collide_widget(enemy):
+                    self.enemyShips.remove(enemy)
+                    self.ids.front.remove_widget(enemy)
+                    
+                    self.remove_bullet(bullet)
+                    break
+        else:
+            if bullet.collide_widget(self.ship):
+                self.game_over()
+                self.remove_bullet(bullet)
                 
     def on_enter(self, *args):
         self.updateEvent = Clock.schedule_interval(self.update, 1 / FPS)
+
         
+        return super().on_enter(*args)
+    
+    def spawn_enemy(self):
         ship = EnemyShip(DIR_DOWN)
         ship.pos = (randint(0, int(Window.size[0] -  ship.size[0])), Window.size[1])
         self.enemyShips.append(ship)
         self.ids.front.add_widget(self.enemyShips[-1])
         
-        return super().on_enter(*args)
+        
     
     def pauseStop(self, *args):
         self.pauseMenu.dismiss()
@@ -121,7 +165,9 @@ class GameScreen(MDScreen):
         shot = Shot(pos=(self.ids.ship.center_x, self.ids.ship.top))
         self.bullets.append(shot)
         self.ids.front.add_widget(shot)
-        
+
+class GameOverScreen(MDScreen):
+    pass
         
 class Ship(Image):
     def __init__(self, direction = DIR_UP, **kwargs):
@@ -172,9 +218,10 @@ class EnemyShip(Ship):
         self.frame += 1
                 
 class Shot(MDWidget):
-    def __init__(self, direction = DIR_UP, **kwargs):
+    def __init__(self, direction = DIR_UP, owner = None , **kwargs):
         super().__init__(**kwargs)
         self.direction = direction
+        self.owner = owner
     
 
 class SettingsScren(MDScreen):
@@ -190,6 +237,7 @@ class ShooterApp(MDApp):
         self.sm.add_widget(MainScreen(name='main'))
         self.sm.add_widget(GameScreen(name='game'))
         self.sm.add_widget(SettingsScren(name='settings'))
+        self.sm.add_widget(GameOverScreen(name="game_over"))
 
         return self.sm
     

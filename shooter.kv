@@ -62,6 +62,31 @@
                     md_bg_color: app.theme_cls.primaryColor
                     on_press: root.pressKey('shot')
                     on_release: root.releaseKey('shot')
+<GameOverScreen>:
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: '50dp'
+        spacing: '30dp'
+        MDLabel:
+            text: "GAME OVER"
+            font_size: '100sp'
+            color: app.theme_cls.accent_color
+            halign: 'center'
+        MDIcon:
+            icon: "skull"
+            font_size: '220sp'
+            size_hint: None, None
+            pos_hint: {'center_x': 0.5}
+            color: app.theme_cls.accent_color
+        Widget:
+            size_hint_y: 0.5
+        MDButton:
+            text: "MENU"
+            font_size: '60sp'
+            pos_hint: {'center_x': 0.5}
+            on_press:
+                root.manager.current = 'main'
+
 
 <SettingsScren>:
     MDBoxLayout:
