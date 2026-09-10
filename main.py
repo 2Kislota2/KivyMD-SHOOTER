@@ -11,6 +11,27 @@ from random import randint
 from kivymd.uix.button import MDButton
 from kivymd.uix.dialog import MDDialog
 from kivy.core.window import Keyboard
+from kivymd.uix.button import MDButton
+
+from kivymd.app import MDApp
+from kivymd.uix.widget import MDWidget
+from kivymd.uix.screenmanager import MDScreenManager
+from kivymd.uix.screen import MDScreen
+from kivy.clock import Clock
+from kivy.metrics import dp
+from kivy.core.window import Window
+from kivy import platform
+from kivy.uix.image import Image
+from random import randint
+# from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
+from kivy.core.window import Keyboard
+from kivy.properties import NumericProperty
+from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.fitimage import FitImage
+
+
+
 
 FPS = 60
 BULLET_SPEED = dp(10)
@@ -19,6 +40,7 @@ SHIP_SPEED = dp(5)
 DIR_UP = 1
 DIR_DOWN = -1
 
+HP_DEF = 1 
 
 class MainScreen(MDScreen):
     pass
@@ -41,6 +63,9 @@ class GameScreen(MDScreen):
         self.spawn_delay = 1.5  # интервал между спавнами врагов (секунды)
         self.updateEvent = None  # ссылка на таймер обновления
         
+        self.backBack = MoveBackground(source="assets/images/photo_2026-09-10_19-53-16.jpg", speed=0.5)
+        self.backFront = MoveBackground(source="assets/images/zerkal.jpg", speed=1, scale=3)
+        
     def _on_key_down(self, window, keycode, *args, **kwargs):
         # key = key if (key := Keyboard.keycode_to_string(window, keycode)) != "spacebar" else "shot" # СТАРЫЙ КОД - ошибка с моржовым оператором
         
@@ -57,6 +82,7 @@ class GameScreen(MDScreen):
         key = "shot" if key_str == "spacebar" else key_str
         self.event_keys[key] = False
         
+
     # def update(self, dt): # СТАРЫЙ КОД
     #     for key,in self.evetkeys:
     #         if self.evetkeys[key] == True:
@@ -75,6 +101,9 @@ class GameScreen(MDScreen):
         
         # Логика спавна врагов
         self.time_last_spawn += dt
+        
+        self.backBack.move()
+        self.backFront.move()
         
         if self.time_last_spawn >= self.spawn_delay:
             self.spawn_enemy()
@@ -234,9 +263,19 @@ class GameOverScreen(MDScreen):
     pass
         
 class Ship(Image):
-    def __init__(self, direction=DIR_UP, **kwargs):
+    
+    hp =  NumericProperty()
+        
+        
+    max_hp = NumericProperty()
+    
+    
+    def __init__(self, direction=DIR_UP, hp=HP_DEF, **kwargs):
         super().__init__(**kwargs)
         self.direction = direction
+        self.hp = self.max_hp = hp
+        
+
 
     def moveLeft(self):
         self.pos[0] -= SHIP_SPEED
@@ -314,6 +353,22 @@ class Shot(MDWidget):
 
 class SettingsScreen(MDScreen):  # ИСПРАВЛЕНО: правильное название
     pass
+
+
+
+
+class MoveBackground(MDFloatLayout):
+    def __init__(self, source, speed=dp(1), scale=1, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.speed = speed
+        self.add_widget(FitImage(source=source, size_hint_y=scale))
+        self.add_widget(FitImage(source=source, size_hint_y=scale, pos=(0,Window.size[1] * scale)))
+        
+    def move(self):
+        for img in self.children:
+            img.pos[1] -= self.speed
+        if img.top <= 0:
+            img.pos[1] = img.size[1]
 
 class ShooterApp(MDApp):
     def build(self):
